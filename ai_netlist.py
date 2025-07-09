@@ -1,6 +1,4 @@
-import cv2
 import uuid
-import numpy as np
 from PIL import Image
 from inference_sdk import InferenceHTTPClient
 
@@ -56,6 +54,8 @@ def convert_to_spice(predictions, image_path):
     return "\n".join(netlist)
 
 def run_analysis(img_path):
+    import cv2
+    import numpy as np
     client = InferenceHTTPClient(
         api_url="https://detect.roboflow.com",
         api_key=API_KEY
