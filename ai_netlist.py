@@ -4,7 +4,7 @@ import numpy as np
 from PIL import Image
 from inference_sdk import InferenceHTTPClient
 
-API_KEY = "YOUR_API_KEY"
+API_KEY = "HgOMyTUuZmcqNDrciGkU"
 MODEL_ID = "electronic-detection/1"
 
 def generate_node():
