@@ -1,43 +1,62 @@
-# ai_kit
+#ai_kit
 import streamlit as st
-from PIL import Image
-import uuid
-import os
+from PIL import Image, UnidentifiedImageError
+from streamlit_drawable_canvas import st_canvas
 
-st.set_page_config(page_title="회로 분석 AI", layout="centered")
-st.title("🧠 회로 이미지 분석 AI")
-st.write("회로 사진을 업로드하고, VCC와 GND 위치를 클릭하세요.")
+st.set_page_config(page_title="회로 AI 툴킷", layout="centered")
+st.title("🔌 회로 이미지 업로드 및 VCC/GND 지정")
 
-uploaded_file = st.file_uploader("회로 사진 업로드", type=["jpg", "png", "jpeg"])
+st.markdown("🖼️ 이미지를 업로드한 뒤, **두 번 클릭**하여 VCC와 GND 위치를 선택하세요.")
+st.markdown("*지원 포맷: JPG, PNG*")
+
+uploaded_file = st.file_uploader("회로 이미지를 업로드하세요", type=["jpg", "jpeg", "png"])
 
 if uploaded_file:
-    img = Image.open(uploaded_file)
-    st.image(img, caption="업로드된 회로", use_column_width=True)
+    try:
+        # PIL로 이미지 열기 + RGB 변환
+        image = Image.open(uploaded_file).convert("RGB")
+        width, height = image.size
 
-    # 클릭 위치 받기 (Streamlit drawable canvas 사용 필요)
-    from streamlit_drawable_canvas import st_canvas
+        st.image(image, caption="업로드된 회로 이미지", use_column_width=True)
 
-    canvas_result = st_canvas(
-        fill_color="rgba(255, 0, 0, 0.3)",  # 클릭 위치 표시
-        stroke_width=5,
-        background_image=img,
-        update_streamlit=True,
-        height=img.height,
-        width=img.width,
-        drawing_mode="point",
-        key="canvas",
-    )
+        # 캔버스 위 클릭 인터페이스
+        canvas_result = st_canvas(
+            fill_color="rgba(255, 0, 0, 0.3)",
+            stroke_width=5,
+            background_image=image,
+            update_streamlit=True,
+            height=height,
+            width=width,
+            drawing_mode="point",
+            key="canvas",
+        )
 
-    # 클릭된 위치 추출
-    if canvas_result.json_data and "objects" in canvas_result.json_data:
-        clicks = canvas_result.json_data["objects"]
-        if len(clicks) >= 2:
-            vcc = clicks[0]["left"], clicks[0]["top"]
-            gnd = clicks[1]["left"], clicks[1]["top"]
-            st.success(f"✅ VCC 위치: {vcc}")
-            st.success(f"✅ GND 위치: {gnd}")
-            # 다음 단계로 좌표 넘기기
-            st.session_state["vcc"] = vcc
-            st.session_state["gnd"] = gnd
+        # 클릭된 점 좌표 추출
+        if canvas_result.json_data and "objects" in canvas_result.json_data:
+            clicks = canvas_result.json_data["objects"]
+            num_clicks = len(clicks)
+
+            if num_clicks >= 2:
+                vcc = clicks[0]["left"], clicks[0]["top"]
+                gnd = clicks[1]["left"], clicks[1]["top"]
+                st.success(f"✅ VCC 좌표: {vcc}")
+                st.success(f"✅ GND 좌표: {gnd}")
+
+                # 추후 처리에 사용할 세션 저장
+                st.session_state["vcc"] = vcc
+                st.session_state["gnd"] = gnd
+                st.session_state["image"] = uploaded_file
+
+                # 다음 단계 버튼
+                if st.button("📤 분석 시작"):
+                    st.write("🔍 AI 모델 호출 준비 중...")
+                    # 여기서 inference 코드로 넘어감 (다음 단계 구현)
+            else:
+                st.info("🖱️ 두 번 클릭해야 VCC, GND 좌표가 지정됩니다.")
         else:
-            st.warning("❗ 최소 2번 클릭하여 VCC, GND를 지정하세요.")
+            st.info("🖱️ 캔버스 위를 클릭해보세요. (두 점)")
+    except UnidentifiedImageError:
+        st.error("⚠️ 이미지 파일이 손상되었거나 지원되지 않는 형식입니다.")
+else:
+    st.info("이미지를 업로드하면 시작할 수 있습니다.")
+
