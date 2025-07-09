@@ -2,7 +2,7 @@ import streamlit as st
 from PIL import Image
 import tempfile
 import os
-from ai_netlist import run_analysis  # ← 당신의 ai_netlist.py 함수 가져오기
+from ai_netlist import run_analysis  # ai_netlist.py 함수 가져오기
 
 st.set_page_config(page_title="회로 분석 AI", layout="centered")
 st.title("🧠 회로 이미지로 Netlist 자동 생성")
